@@ -1,4 +1,6 @@
-const e = require("cors");
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTHS = ['January', 'Febuary', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'Decemeber'];
+const PHASES = ['Dawn', 'Morning', 'Noon', 'Afternoon', 'Day', 'Dusk', 'Night', 'Midnight', 'Late Night'];
 
 function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
   return class extends parentClass {
@@ -7,11 +9,12 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
 
       this.enabled = false;
       this.tickTimer = 0;
-      this.tickRate = 1000;       // how many milliseconds between each tick
+      this.tickRate = 1;       // how many seconds between each tick
       this.ticksPerMintue = 5;
       this.timer = null;
 
       this.currentTick = 0;
+      this.tickMintueCounter = 0;
       this.currentMinute = 0;
       this.currentHour = 0;
       this.currentDay = 1;
@@ -19,6 +22,8 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.currentDayinWeek = 1;
       this.currentMonth = 1;
       this.currentYear = 0;
+      this.phaseMode = 0;
+      this.currentPhase = PHASES[4];
 
       if (properties) {
         this.enabled = properties[0];
@@ -31,6 +36,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
         this.currentMonth = properties[6];
         this.currentYear = properties[7];
         this.currentDayinWeek = properties[8];
+        this.phaseMode = properties[9];
       }
 
       this.Init();
@@ -79,55 +85,158 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
     Tick() {
       this.tickTimer += this._runtime.GetDt();
       if(this.tickTimer > this.tickRate){
-        this.currenTick++;
+        this.currentTick++;
+        this.tickMintueCounter++;
         this.tickTimer = 0;
-
-        this.Trigger(C3.Behaviors.piranha305_timesystem.Cnds.OnTick);
         this.ProcessTick();
+        this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnTick);
       }
     }
 
     ProcessTick() {
-      if(this.currentTick > this.ticksPerMintue){
-        this.currentTick = 0;
+      if(this.tickMintueCounter >= this.ticksPerMintue){
+        this.tickMintueCounter = 0;
         this.currentMinute++;
-        this.Trigger(C3.Behaviors.piranha305_timesystem.Cnds.OnMinute);
         this.ProcessMinute();
+        this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnMinute);
       }
     }
 
     ProcessMinute() {
-      if(this.currentMinute > 60){
+      console.log(this.currentMinute);
+      if(this.currentMinute >= 60){
         this.currentMinute = 0;
         this.currentHour++;
-        this.Trigger(C3.Behaviors.piranha305_timesystem.Cnds.OnHour);
         this.ProcessHour();
+        this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnHour);
+        this.CheckPhaseChange();
       }
     }
 
     ProcessHour() {
-      if(this.currentHour > 24){
+      if(this.currentHour >= 24){
         this.currentHour = 0;
         this.currentDay++;
         this.currentDayinWeek++;
-        this.Trigger(C3.Behaviors.piranha305_timesystem.Cnds.OnDay);
         this.ProcessDay();
+        this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnDay);
       }
     }
 
     ProcessDay() {
-      if(this.currentDayinWeek > 7){
+      if(this.currentDayinWeek >= 7){
         this.currentDayinWeek = 0;
         this.currentWeek++;
-        this.Trigger(C3.Behaviors.piranha305_timesystem.Cnds.OnWeek);
         this.ProcessWeek();
+        this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnWeek);
       }
 
       if(this.currentDay > this.GetMaxDaysMonth(this.currentMonth)){
         this.currentDay = 0;
         this.currentMonth++;
-        this.Trigger(C3.Behaviors.piranha305_timesystem.Cnds.OnMonth);
         this.ProcessMonth();
+        this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnMonth);
+      }
+    }
+
+    CheckPhaseChange() {
+      // at this point current hour has increased by 1
+      // check if phase has changed by comapring current hour to previous hour
+      let previousPhase = "";
+      let currentPhase = ""
+      switch (this.phaseMode) {
+        case 0: // 2 phases
+          previousPhase = this.GetDayPhaseTwo(-1);
+          currentPhase = this.GetDayPhaseTwo();
+          if(previousPhase !== currentPhase){
+            this.currentPhase = currentPhase;
+            this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnDayPhaseChange);
+          }
+          break;
+        case 1: // 4 phases
+          previousPhase = this.GetDayPhaseFour(-1);
+          currentPhase = this.GetDayPhaseFour();
+          if(previousPhase !== currentPhase){
+            this.currentPhase = currentPhase;
+            this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnDayPhaseChange);
+          }
+          break;
+        case 2: // 6 phases
+          previousPhase = this.GetDayPhaseSix(-1);
+          currentPhase = this.GetDayPhaseSix();
+          if(previousPhase !== currentPhase){
+            this.currentPhase = currentPhase;
+            this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnDayPhaseChange);
+          }
+          break;
+        case 3: // 8 phases
+          previousPhase = this.GetDayPhaseEight(-1);
+          currentPhase = this.GetDayPhaseEight();
+          if(previousPhase !== currentPhase){
+            this.currentPhase = currentPhase;
+            this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnDayPhaseChange);
+          }  
+          break
+      }
+    }
+
+    GetDayPhaseTwo(modifier = 0) {
+      const hour = this.currentHour + modifier;
+      if(hour >= 6 && hour < 18){
+        return PHASES[4]; // Day
+      }else{
+        return PHASES[6]; // Night
+      }
+    }
+
+    GetDayPhaseFour(modifier = 0) {
+      const hour = this.currentHour + modifier;
+      if(hour >= 6 && hour < 12){
+        return PHASES[1]; // Morning
+      }else if(hour >= 12 && hour < 18){
+        return PHASES[3]; // Afternoon
+      }else if(hour >= 18 && hour < 24){
+        return PHASES[6]; // Night
+      }else{
+        return PHASES[8]; // Late Night
+      }
+    }
+
+    GetDayPhaseSix(modifier = 0) {
+      const hour = this.currentHour + modifier;
+      if(hour >= 5 && hour < 8){
+        return PHASES[0]; // Dawn
+      }else if(hour >= 8 && hour < 12){
+        return PHASES[1]; // Morning
+      }else if(hour >= 12 && hour < 17){
+        return PHASES[3]; // Afternoon
+      }else if(hour >= 17 && hour < 20){
+        return PHASES[5]; // Dusk
+      }else if(hour >= 20 && hour < 24){
+        return PHASES[6]; // Night
+      }else{
+        return PHASES[8]; // Late Night
+      }
+    }
+
+    GetDayPhaseEight(modifier = 0) {
+      const hour = this.currentHour + modifier;
+      if(hour >= 5 && hour < 8){
+        return PHASES[0]; // Dawn
+      }else if(hour >= 8 && hour < 11){
+        return PHASES[1]; // Morning
+      }else if(hour >= 11 && hour < 14){
+        return PHASES[2]; // Noon
+      }else if(hour >= 14 && hour < 17){
+        return PHASES[3]; // Afternoon
+      }else if(hour >= 17 && hour < 20){
+        return PHASES[5]; // Dusk
+      }else if(hour >= 20 && hour < 23){
+        return PHASES[6]; // Night
+      }else if(hour >= 23 && hour < 2){
+        return PHASES[7]; // Midnight
+      }else{
+        return PHASES[8]; // Late Night
       }
     }
 
@@ -136,13 +245,42 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
         this.currentMonth = 1;
         this.currentWeek = 1
         this.currentYear++;
-        this.Trigger(C3.Behaviors.piranha305_timesystem.Cnds.OnYear);
         this.ProcessYear();
+        this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnYear);
       }
     }
 
     ProcessYear() {
-      this.Trigger(C3.Behaviors.piranha305_timesystem.Cnds.OnNewYear);
+      this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnNewYear);
+    }
+
+    DayFullName() {
+      return DAYS[this.currentDayinWeek];
+    }
+
+    DayShortName() {
+      return DAYS[this.currentDayinWeek].substring(0, 3);
+    }
+
+    MonthFullName() {
+      return MONTHS[this.currentMonth];
+    }
+
+    MonthShortName() {
+      return MONTHS[this.currentMonth].substring(0, 3);
+    }
+
+    Time24() {
+      return this.currentHour.toString().padStart(2, '0') + ':' + this.currentMinute.toString().padStart(2, '0');
+    }
+
+    Time12() {
+      let hour = this.currentHour % 12;
+      if (hour === 0) {
+        hour = 12;
+      }
+      const ampm = this.currentHour < 12 ? 'am' : 'pm';
+      return hour.toString().padStart(2, '0') + ':' + this.currentMinute.toString().padStart(2, '0') + ampm;
     }
 
     Release() {

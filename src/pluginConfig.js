@@ -89,9 +89,9 @@ module.exports = {
       type: "float",
       id: "TickRate",
       name: "Tick Rate",
-      desc: "How many milliseconds between each tick. (default 1000)",
+      desc: "How many seconds between each tick. (default 1)",
       options: {
-        initialValue: 1000,
+        initialValue: 1,
         minValue: 0,
       },
     },
@@ -101,7 +101,7 @@ module.exports = {
       name: "Ticks Per Mintue",
       desc: "How many ticks per mintue. (default 60)",
       options: {
-        initialValue: 1,
+        initialValue: 60,
         minValue: 0,
       },
     },
@@ -178,6 +178,47 @@ module.exports = {
         ],
       },
     },
+    {
+        type: "combo",
+        id: "DayPhases",
+        name: "Day Phases",
+        desc: "How many phases of the day. (default 4)",
+        options: {
+          initialValue: "four",
+          items: [
+            { "two": "2 Phases"},
+            { "four": "4 Phases" },
+            { "six": "6 Phases" },
+            { "eight": "8 Phases" }
+          ],
+        }
+    }
+
+    // 4 phases
+    // 6am - 12pm = morning
+    // 12pm - 6pm = afternoon
+    // 6pm - 12am = night
+    // 12am - 6am = late night
+
+    // 6 phases
+    // 5am - 8am = dawn
+    // 8am - 1pm = morning
+    // 1pmpm - 5pm = afternoon
+    // 5pm - 8pm = dusk
+    // 8pm - 12am = night
+    // 12am - 5am = late night
+
+    // 8 phases
+    // 5am - 8am = dawn
+    // 8am - 11am = morning
+    // 11am - 2pm = noon
+    // 2pm - 5pm = afternoon
+    // 5pm - 8pm = dusk
+    // 8pm - 11pm = night
+    // 11pm - 2am = midnight
+    // 2am - 5am = late night
+  
+    
     /*
     {
       type:
@@ -327,6 +368,94 @@ module.exports = {
     */
   },
   Cnds: {
+    OnTick: {
+      category : "general",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Tick",
+      displayText : "On Tick",
+      description : "Triggered every tick.",
+    },
+    OnMinute: {
+      category : "general",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Minute",
+      displayText : "On Minute",
+      description : "Triggered every minute.",
+    },
+    OnHour: {
+      category : "general",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Hour",
+      displayText : "On Hour",
+      description : "Triggered every hour.",
+    },
+    OnDay: {
+      category : "general",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Day",
+      displayText : "On Day",
+      description : "Triggered every day.",
+    },
+    OnWeek: {
+      category : "general",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Week",
+      displayText : "On Week",
+      description : "Triggered every week.",
+    },
+    OnMonth: {
+      category : "general",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Month",
+      displayText : "On Month",
+      description : "Triggered every month.",
+    },
+    OnYear: {
+      category : "general",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Year",
+      displayText : "On Year",
+      description : "Triggered every year.",
+    },
+    OnDayPhaseChange: {
+      category : "general",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Day Phase Change",
+      displayText : "On Day Phase Change",
+      description : "Triggered when the day phase changes.",
+    },
     /*
     SampleCondition: {
       // The category of the action as it appears in the add condition dialog
@@ -424,6 +553,160 @@ module.exports = {
     */
   },
   Exps: {
+    CurrentTick: {
+      category : "general",
+      handler: `function () { return this.currentTick; }`,
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current tick.",
+    },
+    CurrentMinute: {
+      category : "general",
+      handler: `function () { return this.currentMinute; }`,
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current minute.",
+    },
+    CurrentHour: {
+      category : "general",
+      handler: `function () { return this.currentHour; }`,
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current hour.",
+    },
+    CurrentDay: {
+      category : "general",
+      handler: `function () { return this.currentDay; }`,
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current day.",
+    },
+    CurrentWeek: {
+      category : "general",
+      handler: `function () { return this.currentWeek; }`,
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current week.",
+    },
+    CurrentMonth: {
+      category : "general",
+      handler: `function () { return this.currentMonth; }`,
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current month.",
+    },
+    CurrentYear: {
+      category : "general",
+      handler: `function () { return this.currentYear; }`,
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current year.",
+    },
+    CurrentDayOfWeek: {
+      category : "general",
+      handler: `function () { return this.currentDayinWeek; }`,
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "string",
+      isVariadicParameters: false,
+      description : "The current day of the week.",
+    },
+    CurrentDayName: {
+      category : "general",
+      foward: "DayFullName",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "string",
+      isVariadicParameters: false,
+      description : "The current day of the week. (full-name)",
+    },
+    CurrentDayShortName: {
+      category : "general",
+      foward: "DayShortName",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "string",
+      isVariadicParameters: false,
+      description : "The current day of the week. (short name)",
+    },
+    CurrentMonthName: {
+      category : "general",
+      forward: "MonthFullName",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "string",
+      isVariadicParameters: false,
+      description : "The current month. (full-name)",
+    },
+    CurrentMonthShortName: {
+      category : "general",
+      forward: "MonthShortName",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "string",
+      isVariadicParameters: false,
+      description : "The current month. (short name)",
+    },
+    CurrentTime24: {
+      category : "general",
+      forward: "Time24",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "string",
+      isVariadicParameters: false,
+      description : "The current time in 24 hour format.",
+    },
+    CurrentTime12: {
+      category : "general",
+      forward: "Time12",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "string",
+      isVariadicParameters: false,
+      description : "The current time in 12 hour format.",
+    },
+    CurrentDayPhase: {
+      category : "general",
+      handler: `function () { return this.currentDayPhase; }`,
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "string",
+      isVariadicParameters: false,
+      description : "The current day phase.",
+    },  
+
+
+
+
     /*
     SampleExpression: {
       // The category of the action as it appears in the expression picker
