@@ -1,8 +1,11 @@
 <img src="./examples/cover.png" width="150" /><br>
 # Time System <br>
-Description <br>
+A construct plugin to manage in-game time. <br>
 <br>
 Author: piranha305 <br>
+Website: https://piranha305.itch.io/ <br>
+Addon Url: https://www.construct.net/en/make-games/addons/1101/time-system <br>
+Download Latest Version : [Version: 1.0.0.1](https://github.com/armandoalonso/timesystem/releases/latest) <br>
 <sub>Made using [c3ide2-framework](https://github.com/ConstructFund/c3ide2-framework) </sub><br>
 
 ## Table of Contents
@@ -64,9 +67,10 @@ The main files you may want to look at would be instance.js and scriptInterface.
 | Start Time System | Starts the time system, enabled ticking |  |
 | Stop Time System | Stops the time system, disables ticking |  |
 | Set Tick Rate | Sets the tick rate. | Rate             *(number)* <br> |
-| Set Ticks Duration | Sets the ticks per mintue. | Ticks             *(number)* <br>Type             *(combo)* <br> |
+| Set Ticks Duration | Sets the ticks per {x} duration. | Ticks             *(number)* <br>Type             *(combo)* <br> |
 | Set Date | Sets the date. | Day             *(number)* <br>Month             *(number)* <br>Year             *(number)* <br> |
 | Set Time | Sets the time. | Hour             *(number)* <br>Minute             *(number)* <br>Time Phase             *(combo)* <br> |
+| Set Date Time | Sets the date and time. | Day             *(number)* <br>Month             *(number)* <br>Year             *(number)* <br>Hour             *(number)* <br>Minute             *(number)* <br>Time Phase             *(combo)* <br> |
 | Set Day Of Week | Sets the day of week. (does not manipulate time) | Day             *(combo)* <br> |
 | Add Date Time | Adds the specified amount of time to the current date and time. | Minutes             *(number)* <br>Hours             *(number)* <br>Days             *(number)* <br>Months             *(number)* <br>Years             *(number)* <br> |
 | Set Alarm | Sets the alarm. will trigger OnAlaram condition when time is reached. | Tag             *(string)* <br>Hour             *(number)* <br>Minute             *(number)* <br>Time Phase             *(combo)* <br>Repeat             *(boolean)* <br> |
@@ -83,6 +87,7 @@ The main files you may want to look at would be instance.js and scriptInterface.
 | Go To Next Year | Goes to the next year. |  |
 | Go To Next Day Phase | Goes to the next day phase. | Phase             *(combo)* <br> |
 | Go To Next Season | Goes to the next season. |  |
+| Load Json | Loads the json. | Json             *(string)* <br> |
 
 
 ---
@@ -137,3 +142,4 @@ The main files you may want to look at would be instance.js and scriptInterface.
 | CurrentSeason | The current season. | string |  | 
 | TickRate | The tick rate. | number |  | 
 | TicksPer | The ticks per {x} duration. | number |  | 
+| AsJson | The time system as json. | string |  | 
