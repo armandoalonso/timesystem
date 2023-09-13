@@ -9,12 +9,14 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       super(inst);
 
       this.enabled = false;
+
       this.tickTimer = 0;
+      this.tickCounter = 0;
+
       this.tickRate = 1;       // how many seconds between each tick
       this.ticksPer = 5;
 
       this.currentTick = 0;
-      this.tickCounter = 0;
       this.currentMinute = 0;
       this.currentHour = 0;
       this.currentDay = 1;
@@ -57,7 +59,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.currentWeek = this.CalculateCurrentWeek();
     }
 
-    // ACTIONS
+    // ACTIONS ------------------------------------
 
     StartTickSystem() {
       this._StartTicking();
@@ -106,6 +108,29 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.CheckPhaseChange();
     }
 
+    SetDateTime(day, month, year, hour, minute, ampm) {
+      const current = new Date(this.currentYear, this.currentMonth, this.currentDay);
+      const newDate = new Date(year, month, day);
+      const diffTime = Math.abs(newDate - current);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      this.currentDayinWeek = (this.currentDayinWeek + diffDays) % 7;
+      this.currentDay = day;
+      this.currentMonth = month;
+      this.currentYear = year;
+      this.currentWeek = this.CalculateCurrentWeek();
+
+      if(ampm === 1){
+        hour += 12;
+      }
+      this.currentHour = hour;
+      this.currentMinute = minute;
+
+      this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnAnyDateTimeChanged);
+      this.CheckPhaseChange();
+      this.CheckSeasonChange();
+    }
+
     AddDateTime(mintues, hours, days, months, years) {
       // monthIndex = 0-11 so -1 is applied to currentMonth
       const current = new Date(this.currentYear, this.currentMonth-1, this.currentDay, this.currentHour, this.currentMinute);
@@ -120,7 +145,6 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.currentWeek = this.CalculateCurrentWeek();
 
       this.currentDay = newDate.getDate();
-      debugger;
       this.currentMonth = newDate.getMonth()+1;
       this.currentYear = newDate.getFullYear();
       this.currentHour = newDate.getHours();
@@ -250,7 +274,12 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.currentDayinWeek = day;
     }
 
-    // CONDITIONS
+    LoadJson(json) {
+      const o = JSON.parse(json);
+      this.LoadFromJson(o);
+    }
+
+    // CONDITIONS ------------------------------------
 
     IsEnabled() {
       return this.enabled;
@@ -346,7 +375,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       return false;
     }
 
-    // EXPRESSIONS
+    // EXPRESSIONS ------------------------------------
 
     DayFullName() {
       return DAYS[this.currentDayinWeek];
@@ -377,7 +406,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       return `${hour.toString().padStart(2, '0')}:${this.currentMinute.toString().padStart(2, '0')} ${ampm}`;
     }
 
-    // PRIVATE
+    // PRIVATE ------------------------------------
 
     GetPhaseStartHour(phase) {
       switch (phase) {
@@ -403,7 +432,6 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       const newDate = new Date(year, month-1, day, hour, mintue); 
       return newDate.getTime() - current.getTime();
     }
-
 
     GetMaxDaysMonth(month) {
       switch (month) {
@@ -438,8 +466,6 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
         this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnTick);
       }
     }
-
-
 
     ProcessTick() {
       this.tickCounter++;
@@ -521,7 +547,6 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       if(this.currentMonth > 12){
         this.currentMonth = 1;
         this.currentWeek = 1
-        debugger;
         this.currentYear++;
         this.ProcessYear();
         this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnYear);
@@ -637,26 +662,11 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       }
     }
 
-    // GetDayPhaseEight(modifier = 0) {
-    //   const hour = this.currentHour + modifier;
-    //   if(hour >= 5 && hour < 8){
-    //     return PHASES[0]; // Dawn
-    //   }else if(hour >= 8 && hour < 11){
-    //     return PHASES[1]; // Morning
-    //   }else if(hour >= 11 && hour < 14){
-    //     return PHASES[2]; // Noon
-    //   }else if(hour >= 14 && hour < 17){
-    //     return PHASES[3]; // Afternoon
-    //   }else if(hour >= 17 && hour < 20){
-    //     return PHASES[5]; // Dusk
-    //   }else if(hour >= 20 && hour < 23){
-    //     return PHASES[6]; // Night
-    //   }else if(hour >= 23 && hour < 2){
-    //     return PHASES[7]; // Midnight
-    //   }else{
-    //     return PHASES[8]; // Late Night
-    //   }
-    // }
+    AsJson() {
+      return JSON.stringify(this.SaveToJson());
+    }
+
+    // C3 ------------------------------------
 
     Release() {
       super.Release();
@@ -664,12 +674,52 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
 
     SaveToJson() {
       return {
-        // data to be saved for savegames
+        "enabled": this.enabled,
+        "tickRate": this.tickRate,
+        "tickDurationType": this.tickDurationType,
+        "ticksPer": this.ticksPer,
+        "currentMinute": this.currentMinute,
+        "currentHour": this.currentHour,
+        "currentDay": this.currentDay,
+        "currentMonth": this.currentMonth,
+        "currentYear": this.currentYear,
+        "currentDayinWeek": this.currentDayinWeek,
+        "phaseMode": this.phaseMode,
+        "alarms": this.alarms,
+        "dateTriggers": this.dateTriggers,
+        "monthlyTriggers": this.monthlyTriggers,
+        "yearlyTrigger": this.yearlyTrigger,
+        "tickTimer": this.tickTimer,
+        "tickCounter": this.tickCounter,
+        "currentTick": this.currentTick,
+        "currentPhase": this.currentPhase,
+        "currentSeason": this.currentSeason,
+        "currentWeek": this.currentWeek,
       };
     }
 
     LoadFromJson(o) {
-      // load state for savegames
+      this.enabled = o["enabled"];
+      this.tickRate = o["tickRate"];
+      this.tickDurationType = o["tickDurationType"];
+      this.ticksPer = o["ticksPer"];
+      this.currentMinute = o["currentMinute"];
+      this.currentHour = o["currentHour"];
+      this.currentDay = o["currentDay"];
+      this.currentMonth = o["currentMonth"];
+      this.currentYear = o["currentYear"];
+      this.currentDayinWeek = o["currentDayinWeek"];
+      this.phaseMode = o["phaseMode"];
+      this.alarms = o["alarms"];
+      this.dateTriggers = o["dateTriggers"];
+      this.monthlyTriggers = o["monthlyTriggers"];
+      this.yearlyTrigger = o["yearlyTrigger"];
+      this.tickTimer = o["tickTimer"];
+      this.tickCounter = o["tickCounter"];
+      this.currentTick = o["currentTick"];
+      this.currentPhase = o["currentPhase"];
+      this.currentSeason = o["currentSeason"];
+      this.currentWeek = o["currentWeek"];
     }
 
     Trigger(method) {
@@ -678,6 +728,64 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       if (addonTrigger) {
         this.GetScriptInterface().dispatchEvent(new C3.Event(addonTrigger.id));
       }
+    }
+
+    GetDebuggerProperties() { 
+      return [
+        {
+          title: "TimeSystem",
+          properties: [
+            {
+              name: "$Enabled",
+              value: this.enabled
+            },
+            {
+              name: "$Tick Rate",
+              value: this.tickRate
+            },
+            {
+              name: "$Current Tick",
+              value: this.currentTick
+            },
+            {
+              name: "$Current Minute",
+              value: this.currentMinute
+            },
+            {
+              name: "$Current Hour",
+              value: this.currentHour
+            },
+            {
+              name: "$Current Day",
+              value: this.currentDay
+            },
+            {
+              name: "$Current Month",
+              value: this.currentMonth
+            },
+            {
+              name: "$Current Year",
+              value: this.currentYear
+            },
+            {
+              name: "$Current Day in Week",
+              value: DAYS[this.currentDayinWeek]
+            },
+            {
+              name: "$Current Phase",
+              value: this.currentPhase
+            },
+            {
+              name: "$Current Season",
+              value: this.currentSeason
+            },
+            {
+              name: "$Current Week",
+              value: this.currentWeek
+            },
+          ]
+        }
+      ];
     }
 
     GetScriptInterfaceClass() {

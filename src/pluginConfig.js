@@ -3,7 +3,7 @@ module.exports = {
   addonType: "plugin",
   id: "piranha305_timesystem",
   name: "Time System",
-  version: "1.0.0.0",
+  version: "1.0.0.1",
   category:
     // "3d",
     // "data-and-storage",
@@ -13,14 +13,14 @@ module.exports = {
     // "monetisation",
     // "platform-specific",
     // "web",
-    // "other"
-    "general",
+    "other",
+    // "general",
   author: "piranha305",
-  website: "https://www.construct.net",
-  documentation: "https://www.construct.net",
-  description: "Description",
-  // addonUrl: "https://www.construct.net/en/make-games/addons/####/XXXX", // displayed in auto-generated docs
-  // githubUrl: "https://github.com/skymen/XXXX", // displays latest release version in auto-generated docs
+  website: "https://piranha305.itch.io/",
+  documentation: "https://github.com/armandoalonso/timesystem/blob/main/README.md",
+  description: "A construct plugin to manage in-game time.",
+  addonUrl: "https://www.construct.net/en/make-games/addons/1101/time-system", // displayed in auto-generated docs
+  githubUrl: "https://github.com/armandoalonso/timesystem", // displays latest release version in auto-generated docs
   // icon: "icon.svg", // defaults to "icon.svg" if omitted
   type: "object",   // world, object, dom
   domSideScripts: [
@@ -367,7 +367,7 @@ module.exports = {
       ],
       listName : "Set Ticks Duration",
       displayText : "Set {1} to {0}",
-      description : "Sets the ticks per mintue.",
+      description : "Sets the ticks per {x} duration.",
     },
     SetDate:{
       category: "date",
@@ -398,7 +398,7 @@ module.exports = {
         },
       ],
       listName : "Set Date",
-      displayText : "Set Date to {0}/{1}/{2}",
+      displayText : "Set Date to {1}/{0}/{2} ",
       description : "Sets the date.",
     },
     SetTime: {
@@ -434,8 +434,65 @@ module.exports = {
         }
       ],
       listName : "Set Time",
-      displayText : "Set Time to hour={0}, min={1}, {2}",
+      displayText : "Set Time to {0} : {1}, {2}",
       description : "Sets the time.",
+    },
+    SetDateTime: {
+      category : "datetime",
+      forward: "SetDateTime",
+      highlight : false,
+      deprecated : false,
+      params: [
+        {
+          id: "day",
+          name: "Day",
+          desc: "The day to set. (1-31)",
+          type: "number",
+          value: "1",
+        },
+        {
+          id: "month",
+          name: "Month",
+          desc: "The month to set. (1-12)",
+          type: "number",
+          value: "1",
+        },
+        {
+          id: "year",
+          name: "Year",
+          desc: "The year to set.",
+          type: "number",
+          value: "2021",
+        },
+        {
+          id: "hour",
+          name: "Hour",
+          desc: "The hour to set. (12 hour format)",
+          type: "number",
+          value: "0",
+        },
+        {
+          id: "minute",
+          name: "Minute",
+          desc: "The minute to set. (0-59)",
+          type: "number",
+          value: "0",
+        },
+        {
+          id: "ampm",
+          name: "Time Phase",
+          desc: "The time phase to set. (am/pm)",
+          type: "combo",
+          value: "am",
+          items: [
+            { "am": "am" },
+            { "pm": "pm" },
+          ],
+        }
+      ],
+      listName : "Set Date Time",
+      displayText : "Set Date Time to {0}/{1}/{2} , {3} : {4}, {5}",
+      description : "Sets the date and time.",
     },
     SetDayOfWeek: {
       category: "date",
@@ -805,7 +862,24 @@ module.exports = {
       displayText : "Go To Next Season",
       description : "Goes to the next season.",
     },
-
+    LoadJson: {
+      category : "settings",
+      forward: "LoadJson",
+      highlight : false,
+      deprecated : false,
+      params: [
+        {
+          id: "json",
+          name: "Json",
+          desc: "The json to load.",
+          type: "string",
+          value: "",
+        }
+      ],
+      listName : "Load Json",
+      displayText : "Load Json {0}",
+      description : "Loads the json.",
+    },
 
 
 
@@ -1649,6 +1723,16 @@ module.exports = {
       returnType: "number",
       isVariadicParameters: false,
       description : "The ticks per {x} duration.",
+    },
+    AsJson: {
+      category : "settings",
+      forward: "AsJson",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "string",
+      isVariadicParameters: false,
+      description : "The time system as json.",
     },
 
     /*
