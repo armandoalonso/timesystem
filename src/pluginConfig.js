@@ -3,7 +3,7 @@ module.exports = {
   addonType: "plugin",
   id: "piranha305_timesystem",
   name: "Time System",
-  version: "1.0.0.1",
+  version: "1.1.0.0",
   category:
     // "3d",
     // "data-and-storage",
@@ -296,6 +296,7 @@ module.exports = {
     settings: "Settings",
     dayPhase: "Day Phase",
     season: "Seasons",
+    solarTerm: "Solar Terms",
     triggers: "Triggers",
   },
   Acts: {
@@ -1447,6 +1448,61 @@ module.exports = {
       displayText : "On Yearly Trigger {0}",
       description : "Triggered when the yearly trigger is triggered.",
     },
+    OnSolarTermChanged:{
+      category : "solarTerm",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Solar Term Changed",
+      displayText : "On Solar Term Changed",
+      description : "Triggered when the solar term changes.",
+    },
+    IsSolarTerm: {
+      category: "solarTerm",
+      forward: "IsSolarTerm",
+      highlight: false,
+      deprecated: false,
+      params: [
+        {
+          id: "solarTerm",
+          name: "Solar Term",
+          desc: "The solar term to check.",
+          type: "combo",
+          value: "lichun",
+          items: [
+            { "lichun": "Beginning Of Spring" },
+            { "yushui": "Rain Water" },
+            { "jingzhe": "Awakening Of Insects" },
+            { "chunfen": "Spring Equinox" },
+            { "qingming": "Pure Brightness" },
+            { "guyu": "Grain Rain" },
+            { "lixia": "Beginning Of Summer" },
+            { "xiaoman": "Grain Buds" },
+            { "mangzhong": "Grain In Ear" },
+            { "xiazhi": "Summer Solstice" },
+            { "xiaoshu": "Minor Heat" },
+            { "dashu": "Major Heat" },
+            { "liqiu": "Beginning Of Autumn" },
+            { "chushu": "End Of Heat" },
+            { "baiu": "White Dew" },
+            { "qiufen": "Autumn Equinox" },
+            { "hanlu": "Cold Dew" },
+            { "shuangjiang": "Frosts Descent" },
+            { "lidong": "Beginning Of Winter" },
+            { "xiaoxue": " Minor Snow" },
+            { "daxue": " Major Snow" },
+            { "dongzhi": "Winter Solstice" },
+            { "xiaohan": "Minor Cold" },
+            { "dahan": "Major Cold" },
+          ],
+        },
+      ],
+      listName: "Solar Term Is",
+      displayText: "Solar Term = [b]{0}[/b]",
+      description: "Check if the current solar term is the specified solar term.",
+    }
     /*
     SampleCondition: {
       // The category of the action as it appears in the add condition dialog
@@ -1734,7 +1790,36 @@ module.exports = {
       isVariadicParameters: false,
       description : "The time system as json.",
     },
-
+    CurrentDayInYear: {
+      category : "date",
+      forward: "CurrentDayInYear",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current day in the year. (1-365)",
+    },
+    CurrentSolarTerm: {
+      category : "solarTerm",
+      forward: "CurrentSolarTerm",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "string",
+      isVariadicParameters: false,
+      description : "The current solar terms.",
+    },
+    CurrentSolarTermLongitude: {
+      category : "solarTerm",
+      forward: "CurrentSolarTermLongitude",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current solar terms longitude. in degrees.",
+    },
     /*
     SampleExpression: {
       // The category of the action as it appears in the expression picker
@@ -1792,5 +1877,5 @@ module.exports = {
       description: "This is a sample expression",
     },
     */
-  },
+  }
 };

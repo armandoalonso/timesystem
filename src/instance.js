@@ -1,7 +1,34 @@
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['January', 'Febuary', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'Decemeber'];
 const PHASES = ['Dawn', 'Morning', 'Noon', 'Afternoon', 'Day', 'Dusk', 'Night', 'Midnight', 'Late Night'];
-const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter']
+const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter'];
+const SOLAR_TERMS = [ 
+  { en:'Minor Cold', day:0, longitude:285 }, 
+  { en:'Major Cold', day:15, longitude:300 }, 
+  { en:'Beginning Of Spring', day:35, longitude:315 }, 
+  { en:'Rain Water', day:50, longitude:330 }, 
+  { en:'Awakening Of Insects', day:65, longitude:345 }, 
+  { en:'Spring Equinox', day:80, longitude:0 },
+  { en:'Pure Brightness', day:95, longitude:15 }, 
+  { en:'Grain Rain', day:110, longitude:30 }, 
+  { en:'Beginning Of Summer', day:125, longitude:45 }, 
+  { en:'Grain Buds', day:140, longitude:60 }, 
+  { en:'Grain In Ear', day:155, longitude:75 }, 
+  { en:'Summer Solstice', day:170, longitude:90 },
+  { en:'Minor Heat', day:185, longitude:105 }, 
+  { en:'Major Heat', day:200, longitude:120 }, 
+  { en:'Beginning Of Autumn', day:215, longitude:135 }, 
+  { en:'End Of Heat', day:230, longitude:150 }, 
+  { en:'White Dew', day:245, longitude:165 }, 
+  { en:'Autumn Equinox', day:260, longitude:180 }, 
+  { en:'Cold Dew', day:275, longitude:195 }, 
+  { en:'Frosts Descent', day:290, longitude:210 }, 
+  { en:'Beginning Of Winter', day:305, longitude:225 }, 
+  { en:'Minor Snow', day:320, longitude:240 }, 
+  { en:'Major Snow', day:335, longitude:255 }, 
+  { en:'Winter Solstice', day:350, longitude:270},
+  { en:'Minor Cold', day:365, longitude:285 },
+];
 
 function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
   return class extends parentClass {
@@ -21,12 +48,14 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.currentHour = 0;
       this.currentDay = 1;
       this.currentWeek = 1;
+      this.currentDayInYear = 1;
       this.currentDayinWeek = 1;
       this.currentMonth = 1;
       this.currentYear = 0;
       this.phaseMode = 0;
       this.currentPhase = PHASES[4];
       this.currentSeason = SEASONS[0];
+      this.currentSolarTerm = SOLAR_TERMS[0];
 
       this.alarms = {};
       this.dateTriggers = {};
@@ -57,6 +86,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
 
     Init() {
       this.currentWeek = this.CalculateCurrentWeek();
+      this.currentDayInYear = this.CalculateCurrentDayOfYear();
     }
 
     // ACTIONS ------------------------------------
@@ -91,10 +121,12 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.currentMonth = month;
       this.currentYear = year;
       this.currentWeek = this.CalculateCurrentWeek();
+      this.currentDayInYear = this.CalculateCurrentDayOfYear();
       
       this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnAnyDateTimeChanged);
       this.CheckPhaseChange();
       this.CheckSeasonChange();
+      this.CheckSolarTermChange();
     }
 
     SetTime(hour, minute, ampm) {
@@ -119,6 +151,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.currentMonth = month;
       this.currentYear = year;
       this.currentWeek = this.CalculateCurrentWeek();
+      this.currentDayInYear = this.CalculateCurrentDayOfYear();
 
       if(ampm === 1){
         hour += 12;
@@ -129,6 +162,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnAnyDateTimeChanged);
       this.CheckPhaseChange();
       this.CheckSeasonChange();
+      this.CheckSolarTermChange();
     }
 
     AddDateTime(mintues, hours, days, months, years) {
@@ -143,6 +177,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       
       this.currentDayinWeek = (this.currentDayinWeek + days) % 7;
       this.currentWeek = this.CalculateCurrentWeek();
+      this.currentDayInYear = this.CalculateCurrentDayOfYear();
 
       this.currentDay = newDate.getDate();
       this.currentMonth = newDate.getMonth()+1;
@@ -153,6 +188,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnAnyDateTimeChanged);
       this.CheckPhaseChange();
       this.CheckSeasonChange();
+      this.CheckSolarTermChange();
     }
 
     SetAlarm(tag, hour, minute, ampm, repeat) {
@@ -207,6 +243,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
     NextDay() {
       this.currentDay++;
       this.currentDayinWeek++;
+      this.currentDayInYear++;
       this.ProcessDay();
       this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnAnyDateTimeChanged);
       this.CheckPhaseChange();
@@ -291,6 +328,10 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
 
     IsSeason(season) {
       return this.currentSeason == SEASONS[season];
+    }
+
+    IsSolarTerm(solarTerm) {
+      return this.currentSolarTerm.en == SOLAR_TERMS[solarTerm].en;
     }
 
     IsDateTime(day, month, year, hour, minute, ampm) {
@@ -406,6 +447,18 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       return `${hour.toString().padStart(2, '0')}:${this.currentMinute.toString().padStart(2, '0')} ${ampm}`;
     }
 
+    CurrentDayInYear() {
+      return this.currentDayInYear;
+    }
+
+    CurrentSolarTerm() {
+      return this.currentSolarTerm.en;
+    }
+
+    CurrentSolarTermLongitude() {
+      return this.currentSolarTerm.longitude;
+    }
+
     // PRIVATE ------------------------------------
 
     GetPhaseStartHour(phase) {
@@ -457,6 +510,14 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       return currentWeek;
     }
 
+    CalculateCurrentDayOfYear() {
+      let daysSinceFirstDay = this.currentDay;
+      for (let i = 1; i < this.currentMonth; i++) {
+        daysSinceFirstDay += this.GetMaxDaysMonth(i);
+      }
+      return daysSinceFirstDay;
+    }
+
     Tick() {
       this.tickTimer += this._runtime.GetDt();
       if(this.tickTimer > this.tickRate){
@@ -487,6 +548,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
           case 2: // per day
             this.currentDay++;
             this.currentDayinWeek++;
+            this.currentDayInYear++;
             this.ProcessDay();
             this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnDay);
             this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnAnyDateTimeChanged);
@@ -522,12 +584,15 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
         this.currentHour = 0;
         this.currentDay++;
         this.currentDayinWeek++;
+        this.currentDayInYear++;
         this.ProcessDay();
         this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnDay);
       }
     }
 
     ProcessDay() {
+      this.CheckSolarTermChange();
+
       if(this.currentDayinWeek >= 7){
         this.currentDayinWeek = 0;
         this.currentWeek++;
@@ -554,7 +619,29 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
     }
 
     ProcessYear() {
+      this.currentDayInYear = 1;
       this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnNewYear);
+    }
+
+    CheckSolarTermChange() {
+      const previousSolarTerm = this.currentSolarTerm.en;
+      this.currentSolarTerm = this.GetSolarTerm(this.currentDayInYear);
+
+      if(previousSolarTerm !== this.currentSolarTerm.en){
+        this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnSolarTermChanged);
+      }
+    }
+
+    GetSolarTerm(day) {
+      debugger;
+      let solarTerm = SOLAR_TERMS[0];
+      for (let i = 0; i < SOLAR_TERMS.length; i++) {
+        //if (day >= SOLAR_TERMS[i].day && day < SOLAR_TERMS[i + 1].day) {
+        if (day >= SOLAR_TERMS[i].day) {
+          solarTerm = SOLAR_TERMS[i];
+        }
+      }
+      return  solarTerm;
     }
 
     CheckSeasonChange() {
@@ -684,6 +771,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
         "currentMonth": this.currentMonth,
         "currentYear": this.currentYear,
         "currentDayinWeek": this.currentDayinWeek,
+        "currentDayInYear": this.currentDayInYear,
         "phaseMode": this.phaseMode,
         "alarms": this.alarms,
         "dateTriggers": this.dateTriggers,
@@ -709,6 +797,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.currentMonth = o["currentMonth"];
       this.currentYear = o["currentYear"];
       this.currentDayinWeek = o["currentDayinWeek"];
+      this.currentDayInYear = o["currentDayInYear"];
       this.phaseMode = o["phaseMode"];
       this.alarms = o["alarms"];
       this.dateTriggers = o["dateTriggers"];
@@ -770,6 +859,10 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
             {
               name: "$Current Day in Week",
               value: DAYS[this.currentDayinWeek]
+            },
+            {
+              name: "$Current Day in Year",
+              value: this.currentDayInYear
             },
             {
               name: "$Current Phase",
