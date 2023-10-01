@@ -177,6 +177,15 @@ module.exports = {
       },
     },
     {
+      type: "check",
+      id: "AutoDetermineDay",
+      name: "Auto Determine Day",
+      desc: "Determines the day based on the defined date, if false the current day will be caluclated from defined current day of week",
+      options: {
+        initialValue: false,
+      },
+    },
+    {
       type: "combo",
       id: "CurrentDayOfWeek",
       name: "Current Day Of Week",
@@ -205,7 +214,6 @@ module.exports = {
             { "two": "2 Phases)" },
             { "four": "4 Phases" },
             { "six": "6 Phases" },
-            //{ "eight": "8 Phases" }
           ],
         }
     }
@@ -494,6 +502,24 @@ module.exports = {
       listName : "Set Date Time",
       displayText : "Set Date Time to {0}/{1}/{2} , {3} : {4}, {5}",
       description : "Sets the date and time.",
+    },
+    SetAutoDetermineDay: {
+      category : "settings",
+      forward: "SetAutoDetermineDay",
+      highlight : false,
+      deprecated : false,
+      params: [
+        {
+          id: "auto",
+          name: "Auto",
+          desc: "Determines the day based on the defined date",
+          type: "boolean",
+          value: "false",
+        }
+      ],
+      listName : "Set Auto Determine Day",
+      displayText : "Set Auto Determine Day to {0}",
+      description : "Sets the auto determine day. Determines the day based on the defined date, if false the current day will be caluclated from defined current day of week",
     },
     SetDayOfWeek: {
       category: "date",
@@ -1119,6 +1145,48 @@ module.exports = {
       listName : "Day Phase Is",
       displayText : "Day Phase = [b]{0}[/b]",
       description : "Check if the current day phase is the specified phase.",
+    },
+    IsDayTime:{
+      category : "dayPhase",
+      forward: "IsDayTime",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      listName : "Is Day Time",
+      displayText : "Is Day Time",
+      description : "Check if the current day phase is day. [6:00am - 8:00pm]",
+    },
+    IsNightTime:{
+      category : "dayPhase",
+      forward: "IsNightTime",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      listName : "Is Night Time",
+      displayText : "Is Night Time",
+      description : "Check if the current day phase is night. [8:00pm - 6:00am]",
+    },
+    OnNoon:{
+      category: "time",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Noon",
+      displayText : "On Noon",
+      description : "Triggered when the time is noon.",
+    },
+    OnMidnight:{
+      category: "time",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Midnight",
+      displayText : "On Midnight",
+      description : "Triggered when the time is midnight.",
     },
     OnSeasonChanged: {
       category : "season",

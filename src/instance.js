@@ -1,6 +1,6 @@
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['January', 'Febuary', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'Decemeber'];
-const PHASES = ['Dawn', 'Morning', 'Afternoon', 'Day', 'Dusk', 'Night', 'Late Night'];
+const PHASES = ['Dawn', 'Morning', 'Afternoon', 'Day', 'Dusk', 'Night', 'LateNight'];
 const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter'];
 const SOLAR_TERMS = [
   {'longitude':315,   'minutes':42467,    'term':'BeginningOfSpring'},
@@ -49,6 +49,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.currentWeek = 1;
       this.currentDayInYear = 1;
       this.currentDayinWeek = 1;
+      this.autoDetermineDay = false;
       this.currentMonth = 1;
       this.currentYear = 0;
       this.phaseMode = 0;
@@ -73,8 +74,9 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
         this.currentDay = properties[6];
         this.currentMonth = properties[7];
         this.currentYear = properties[8];
-        this.currentDayinWeek = properties[9];
-        this.phaseMode = properties[10];
+        this.autoDetermineDay = properties[9];
+        this.currentDayinWeek = properties[10];
+        this.phaseMode = properties[11];
       }
 
       this.Init();
@@ -85,6 +87,10 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
     }
 
     Init() {
+      if(this.autoDetermineDay){
+        this.currentDayinWeek = this.GetCurrentDayOfTheWeek();
+      }
+
       this.solarTermDates = this.CalculateSolarTermDates(this.currentYear);
       this.currentWeek = this.CalculateCurrentWeek();
       this.currentDayInYear = this.CalculateCurrentDayOfYear();
@@ -120,10 +126,10 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       const diffTime = Math.abs(newDate - current);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      this.currentDayinWeek = (this.currentDayinWeek + diffDays) % 7;
       this.currentDay = day;
       this.currentMonth = month;
       this.currentYear = year;
+      this.currentDayinWeek = this.autoDetermineDay ? this.GetCurrentDayOfTheWeek() : (this.currentDayinWeek + diffDays) % 7;
       this.currentWeek = this.CalculateCurrentWeek();
       this.currentDayInYear = this.CalculateCurrentDayOfYear();
       
@@ -150,10 +156,10 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       const diffTime = Math.abs(newDate - current);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-      this.currentDayinWeek = (this.currentDayinWeek + diffDays) % 7;
       this.currentDay = day;
       this.currentMonth = month;
       this.currentYear = year;
+      this.currentDayinWeek = this.autoDetermineDay ? this.GetCurrentDayOfTheWeek() : (this.currentDayinWeek + diffDays) % 7;
       this.solarTermDates = this.CalculateSolarTermDates(this.currentYear);
       this.currentWeek = this.CalculateCurrentWeek();
       this.currentDayInYear = this.CalculateCurrentDayOfYear();
@@ -168,6 +174,11 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.CheckPhaseChange();
       this.CheckSeasonChange();
       this.CheckSolarTermChange();
+    }
+
+    SetAutoDetermineDay(auto) {
+      this.autoDetermineDay = auto;
+      this.currentDayinWeek = this.autoDetermineDay ? this.GetCurrentDayOfTheWeek() : this.currentDayinWeek;
     }
 
     GetDaysFromMiliseconds(milliseconds) {
@@ -188,16 +199,15 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       const curTime =  this.GetDaysFromMiliseconds(current.getTime());
       const newTime = this.GetDaysFromMiliseconds(newDate.getTime());
       const diffDays = Math.abs(curTime - newTime);
-
-      this.currentDayinWeek = (this.currentDayinWeek + diffDays) % 7;
-      this.currentWeek = this.CalculateCurrentWeek();
-      this.currentDayInYear = this.CalculateCurrentDayOfYear();
-
+      
       this.currentDay = newDate.getDate();
       this.currentMonth = newDate.getMonth()+1;
       this.currentYear = newDate.getFullYear();
       this.currentHour = newDate.getHours();
       this.currentMinute = newDate.getMinutes();
+      this.currentDayinWeek = this.autoDetermineDay ? this.GetCurrentDayOfTheWeek() : (this.currentDayinWeek + diffDays) % 7;
+      this.currentWeek = this.CalculateCurrentWeek();
+      this.currentDayInYear = this.CalculateCurrentDayOfYear();
       this.solarTermDates = this.CalculateSolarTermDates(this.currentYear);
 
       this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnAnyDateTimeChanged);
@@ -381,6 +391,14 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
 
     IsMonth(month) {
       return this.currentMonth === month;
+    }
+
+    IsDayTime() {
+      return this.currentHour >= 6 && this.currentHour < 18;
+    }
+
+    IsNightTime() {
+      return this.currentHour >= 18 && this.currentHour < 6;
     }
 
     OnAlarm(tag) {
@@ -617,6 +635,17 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
 
     ProcessHour() {
       this.CheckPhaseChange();
+
+      //check for noon
+      if(this.currentHour === 12){
+        this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnNoon);
+      }
+
+      //check for midnight
+      if(this.currentHour === 24){
+        this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnMidnight);
+      }
+
       if(this.currentHour >= 24){
         this.currentHour = 0;
         this.currentDay++;
@@ -681,6 +710,11 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
         }
       }
       return  solarTerm;
+    }
+
+    GetCurrentDayOfTheWeek() {
+      const date = new Date(this.currentYear, this.currentMonth-1, this.currentDay);
+      return date.getDay();
     }
 
     GetDayOfYear(date) {

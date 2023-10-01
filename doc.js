@@ -31,6 +31,17 @@ function getCoverImage() {
   return "<img src=\"./src/icon.svg\" width=\"100\" /><br>";
 }
 
+function getNotesMarkdown() {
+  const notesPath = path.join(__dirname, "Notes.md");
+  if(fs.existsSync(notesPath)) {
+    const notesFile = fs.readFileSync(notesPath, "utf8");
+    const notes = notesFile.split("\n");
+    return notes;
+  }
+
+  return [];
+}
+
 const config = require("./src/pluginConfig.js");
 
 const readme = [];
@@ -107,6 +118,14 @@ if(fs.existsSync(exampleFolderPath)) {
       readme.push(`</br>`);
   });
 }
+
+readme.push(``);
+readme.push(`---`);
+readme.push(`## Notes`);
+const notes = getNotesMarkdown();
+notes.forEach((note) => {
+  readme.push(`${note}`);
+});
 
 
 readme.push(``);
