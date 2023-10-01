@@ -1,33 +1,32 @@
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['January', 'Febuary', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'Decemeber'];
-const PHASES = ['Dawn', 'Morning', 'Noon', 'Afternoon', 'Day', 'Dusk', 'Night', 'Midnight', 'Late Night'];
+const PHASES = ['Dawn', 'Morning', 'Afternoon', 'Day', 'Dusk', 'Night', 'Late Night'];
 const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter'];
-const SOLAR_TERMS = [ 
-  { en:'Minor Cold', day:0, longitude:285 }, 
-  { en:'Major Cold', day:15, longitude:300 }, 
-  { en:'Beginning Of Spring', day:35, longitude:315 }, 
-  { en:'Rain Water', day:50, longitude:330 }, 
-  { en:'Awakening Of Insects', day:65, longitude:345 }, 
-  { en:'Spring Equinox', day:80, longitude:0 },
-  { en:'Pure Brightness', day:95, longitude:15 }, 
-  { en:'Grain Rain', day:110, longitude:30 }, 
-  { en:'Beginning Of Summer', day:125, longitude:45 }, 
-  { en:'Grain Buds', day:140, longitude:60 }, 
-  { en:'Grain In Ear', day:155, longitude:75 }, 
-  { en:'Summer Solstice', day:170, longitude:90 },
-  { en:'Minor Heat', day:185, longitude:105 }, 
-  { en:'Major Heat', day:200, longitude:120 }, 
-  { en:'Beginning Of Autumn', day:215, longitude:135 }, 
-  { en:'End Of Heat', day:230, longitude:150 }, 
-  { en:'White Dew', day:245, longitude:165 }, 
-  { en:'Autumn Equinox', day:260, longitude:180 }, 
-  { en:'Cold Dew', day:275, longitude:195 }, 
-  { en:'Frosts Descent', day:290, longitude:210 }, 
-  { en:'Beginning Of Winter', day:305, longitude:225 }, 
-  { en:'Minor Snow', day:320, longitude:240 }, 
-  { en:'Major Snow', day:335, longitude:255 }, 
-  { en:'Winter Solstice', day:350, longitude:270},
-  { en:'Minor Cold', day:365, longitude:285 },
+const SOLAR_TERMS = [
+  {'longitude':315,   'minutes':42467,    'term':'BeginningOfSpring'},
+  {'longitude':330,   'minutes':63836,    'term':'RainWater'},
+  {'longitude':345,   'minutes':85337,    'term':'AwakeningOfInsects'},
+  {'longitude':0,     'minutes':107014,   'term':'SpringEquinox'},
+  {'longitude':15,    'minutes':128867,   'term':'PureBrightness'},
+  {'longitude':30,    'minutes':150921,   'term':'GrainRain'},
+  {'longitude':45,    'minutes':173149,   'term':'BeginningOfSummer'},
+  {'longitude':60,    'minutes':195551,   'term':'GrainBuds'},
+  {'longitude':75,    'minutes':218072,   'term':'GrainInEar'},
+  {'longitude':90,    'minutes':240693,   'term':'SummerSolstice'},
+  {'longitude':105,   'minutes':263343,   'term':'MinorHeat'},
+  {'longitude':120,   'minutes':285989,   'term':'Majorheat'},
+  {'longitude':135,   'minutes':308563,   'term':'BeginningOfAutumn'},
+  {'longitude':150,   'minutes':331033,   'term':'EndOfHeat'},
+  {'longitude':165,   'minutes':353350,   'term':'WhiteDew'},
+  {'longitude':180,   'minutes':375494,   'term':'AutumnEquinox'},
+  {'longitude':195,   'minutes':397447,   'term':'ColdDew'},
+  {'longitude':210,   'minutes':419210,   'term':'FrostsDescent'},
+  {'longitude':225,   'minutes':440795,   'term':'BeginningOfWinter'},
+  {'longitude':240,   'minutes':462224,   'term':'MinorSnow'},
+  {'longitude':255,   'minutes':483532,   'term':'MajorSnow'},
+  {'longitude':270,   'minutes':504758,   'term':'WinterSolstice'},
+  {'longitude':285,   'minutes':0,        'term':'MinorCold'},
+  {'longitude':300,   'minutes':21208,    'term':'MajorCold'},
 ];
 
 function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
@@ -56,6 +55,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.currentPhase = PHASES[4];
       this.currentSeason = SEASONS[0];
       this.currentSolarTerm = SOLAR_TERMS[0];
+      this.solarTermDates = null;
 
       this.alarms = {};
       this.dateTriggers = {};
@@ -85,8 +85,12 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
     }
 
     Init() {
+      this.solarTermDates = this.CalculateSolarTermDates(this.currentYear);
       this.currentWeek = this.CalculateCurrentWeek();
       this.currentDayInYear = this.CalculateCurrentDayOfYear();
+      this.CheckSeasonChange();
+      this.CheckPhaseChange();
+      this.CheckSolarTermChange();
     }
 
     // ACTIONS ------------------------------------
@@ -150,6 +154,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.currentDay = day;
       this.currentMonth = month;
       this.currentYear = year;
+      this.solarTermDates = this.CalculateSolarTermDates(this.currentYear);
       this.currentWeek = this.CalculateCurrentWeek();
       this.currentDayInYear = this.CalculateCurrentDayOfYear();
 
@@ -165,6 +170,10 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.CheckSolarTermChange();
     }
 
+    GetDaysFromMiliseconds(milliseconds) {
+      return Math.floor(milliseconds / (1000 * 60 * 60 * 24));
+    }
+
     AddDateTime(mintues, hours, days, months, years) {
       // monthIndex = 0-11 so -1 is applied to currentMonth
       const current = new Date(this.currentYear, this.currentMonth-1, this.currentDay, this.currentHour, this.currentMinute);
@@ -174,8 +183,13 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       milliseconds += months * 30 * 24 * 60 * 60 * 1000;
       milliseconds += years * 365 * 24 * 60 * 60 * 1000;
       const newDate = new Date(current.getTime() + milliseconds);
-      
-      this.currentDayinWeek = (this.currentDayinWeek + days) % 7;
+
+      // get day difference
+      const curTime =  this.GetDaysFromMiliseconds(current.getTime());
+      const newTime = this.GetDaysFromMiliseconds(newDate.getTime());
+      const diffDays = Math.abs(curTime - newTime);
+
+      this.currentDayinWeek = (this.currentDayinWeek + diffDays) % 7;
       this.currentWeek = this.CalculateCurrentWeek();
       this.currentDayInYear = this.CalculateCurrentDayOfYear();
 
@@ -184,6 +198,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       this.currentYear = newDate.getFullYear();
       this.currentHour = newDate.getHours();
       this.currentMinute = newDate.getMinutes();
+      this.solarTermDates = this.CalculateSolarTermDates(this.currentYear);
 
       this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnAnyDateTimeChanged);
       this.CheckPhaseChange();
@@ -331,7 +346,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
     }
 
     IsSolarTerm(solarTerm) {
-      return this.currentSolarTerm.en == SOLAR_TERMS[solarTerm].en;
+      return this.currentSolarTerm.term == SOLAR_TERMS[solarTerm].term;
     }
 
     IsDateTime(day, month, year, hour, minute, ampm) {
@@ -452,11 +467,23 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
     }
 
     CurrentSolarTerm() {
-      return this.currentSolarTerm.en;
+      return SOLAR_TERMS.indexOf(this.currentSolarTerm);
+    }
+
+    CurrentSolarTermName() {
+      return this.currentSolarTerm.term;
     }
 
     CurrentSolarTermLongitude() {
       return this.currentSolarTerm.longitude;
+    }
+
+    CurrentSeasonIndex() {
+      return SEASONS.indexOf(this.currentSeason);
+    }
+
+    CurrentPhaseOfDayIndex() {
+      return PHASES.indexOf(this.currentPhase);
     }
 
     // PRIVATE ------------------------------------
@@ -518,6 +545,16 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       return daysSinceFirstDay;
     }
 
+    CalculateSolarTermDates(year) {
+      const baseTimeForYear = 31556925974.7 * (year - 1900) + Date.UTC(1900,0,6,2,5);
+      let solarTermsDates = [];
+      for(let n = 0; n < 24; n++) {
+          let termDate = new Date(baseTimeForYear + SOLAR_TERMS[n].minutes * 60000);
+          solarTermsDates.push({ longitude: SOLAR_TERMS[n].longitude, term: SOLAR_TERMS[n].term, days: this.GetDayOfYear(termDate) }); 
+      }
+      return solarTermsDates;
+   }
+
     Tick() {
       this.tickTimer += this._runtime.GetDt();
       if(this.tickTimer > this.tickRate){
@@ -575,11 +612,11 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
         this.currentHour++;
         this.ProcessHour();
         this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnHour);
-        this.CheckPhaseChange();
       }
     }
 
     ProcessHour() {
+      this.CheckPhaseChange();
       if(this.currentHour >= 24){
         this.currentHour = 0;
         this.currentDay++;
@@ -604,11 +641,12 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
         this.currentMonth++;
         this.ProcessMonth();
         this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnMonth);
-        this.CheckSeasonChange();
       }
     }
 
     ProcessMonth() {
+      this.CheckSeasonChange();
+
       if(this.currentMonth > 12){
         this.currentMonth = 1;
         this.currentWeek = 1
@@ -619,29 +657,37 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
     }
 
     ProcessYear() {
+      this.solarTermDates = this.CalculateSolarTermDates(this.currentYear);
       this.currentDayInYear = 1;
       this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnNewYear);
     }
 
     CheckSolarTermChange() {
-      const previousSolarTerm = this.currentSolarTerm.en;
+      const previousSolarTerm = this.currentSolarTerm.term;
       this.currentSolarTerm = this.GetSolarTerm(this.currentDayInYear);
 
-      if(previousSolarTerm !== this.currentSolarTerm.en){
+      if(previousSolarTerm !== this.currentSolarTerm.term){
         this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnSolarTermChanged);
       }
     }
 
     GetSolarTerm(day) {
-      debugger;
-      let solarTerm = SOLAR_TERMS[0];
-      for (let i = 0; i < SOLAR_TERMS.length; i++) {
-        //if (day >= SOLAR_TERMS[i].day && day < SOLAR_TERMS[i + 1].day) {
-        if (day >= SOLAR_TERMS[i].day) {
-          solarTerm = SOLAR_TERMS[i];
+      let solarTerm = this.solarTermDates[21]; //get last solar term in year
+
+      const solarTerms = this.solarTermDates.slice().sort((a, b) => (a.days > b.days) ? 1 : -1);
+      for (let i = 0; i < solarTerms.length; i++) {
+        if (day >= solarTerms[i].days) {
+          solarTerm = solarTerms[i];
         }
       }
       return  solarTerm;
+    }
+
+    GetDayOfYear(date) {
+      const start = new Date(date.getFullYear(), 0, 0);
+      const diff = (date - start);;
+      const oneDay = 1000 * 60 * 60 * 24;
+      return Math.floor(diff / oneDay);
     }
 
     CheckSeasonChange() {
@@ -700,22 +746,15 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
             this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnDayPhaseChange);
           }
           break;
-        case 3: // 8 phases
-          this.currentPhase = this.GetDayPhaseEight();
-          if(previousPhase !== this.currentPhase){
-            this.currentPhase = this.currentPhase;
-            this.Trigger(C3.Plugins.piranha305_timesystem.Cnds.OnDayPhaseChange);
-          }  
-          break
       }
     }
 
     GetDayPhaseTwo(modifier = 0) {
       const hour = this.currentHour + modifier;
       if(hour >= 6 && hour < 18){
-        return PHASES[4]; // Day
+        return PHASES[3]; // Day
       }else{
-        return PHASES[6]; // Night
+        return PHASES[5]; // Night
       }
     }
 
@@ -724,11 +763,11 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       if(hour >= 6 && hour < 12){
         return PHASES[1]; // Morning
       }else if(hour >= 12 && hour < 18){
-        return PHASES[3]; // Afternoon
+        return PHASES[2]; // Afternoon
       }else if(hour >= 18 && hour < 24){
-        return PHASES[6]; // Night
+        return PHASES[5]; // Night
       }else{
-        return PHASES[8]; // Late Night
+        return PHASES[6]; // Late Night
       }
     }
 
@@ -739,13 +778,13 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       }else if(hour >= 8 && hour < 12){
         return PHASES[1]; // Morning
       }else if(hour >= 12 && hour < 17){
-        return PHASES[3]; // Afternoon
+        return PHASES[2]; // Afternoon
       }else if(hour >= 17 && hour < 20){
-        return PHASES[5]; // Dusk
+        return PHASES[4]; // Dusk
       }else if(hour >= 20 && hour < 24){
-        return PHASES[6]; // Night
+        return PHASES[5]; // Night
       }else{
-        return PHASES[8]; // Late Night
+        return PHASES[6]; // Late Night
       }
     }
 
@@ -871,6 +910,10 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
             {
               name: "$Current Season",
               value: this.currentSeason
+            },
+            {
+              name: "$Current Solar Term",
+              value: this.currentSolarTerm.term
             },
             {
               name: "$Current Week",
