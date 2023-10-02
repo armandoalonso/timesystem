@@ -3,7 +3,7 @@ module.exports = {
   addonType: "plugin",
   id: "piranha305_timesystem",
   name: "Time System",
-  version: "1.0.0.1",
+  version: "1.1.0.2",
   category:
     // "3d",
     // "data-and-storage",
@@ -177,6 +177,15 @@ module.exports = {
       },
     },
     {
+      type: "check",
+      id: "AutoDetermineDay",
+      name: "Auto Determine Day",
+      desc: "Determines the day based on the defined date, if false the current day will be caluclated from defined current day of week",
+      options: {
+        initialValue: false,
+      },
+    },
+    {
       type: "combo",
       id: "CurrentDayOfWeek",
       name: "Current Day Of Week",
@@ -205,7 +214,6 @@ module.exports = {
             { "two": "2 Phases)" },
             { "four": "4 Phases" },
             { "six": "6 Phases" },
-            //{ "eight": "8 Phases" }
           ],
         }
     }
@@ -296,6 +304,7 @@ module.exports = {
     settings: "Settings",
     dayPhase: "Day Phase",
     season: "Seasons",
+    solarTerm: "Solar Terms",
     triggers: "Triggers",
   },
   Acts: {
@@ -434,7 +443,7 @@ module.exports = {
         }
       ],
       listName : "Set Time",
-      displayText : "Set Time to {0} : {1}, {2}",
+      displayText : "Set Time to {0} and {1} mintues, {2}",
       description : "Sets the time.",
     },
     SetDateTime: {
@@ -493,6 +502,24 @@ module.exports = {
       listName : "Set Date Time",
       displayText : "Set Date Time to {0}/{1}/{2} , {3} : {4}, {5}",
       description : "Sets the date and time.",
+    },
+    SetAutoDetermineDay: {
+      category : "settings",
+      forward: "SetAutoDetermineDay",
+      highlight : false,
+      deprecated : false,
+      params: [
+        {
+          id: "auto",
+          name: "Auto",
+          desc: "Determines the day based on the defined date",
+          type: "boolean",
+          value: "false",
+        }
+      ],
+      listName : "Set Auto Determine Day",
+      displayText : "Set Auto Determine Day to {0}",
+      description : "Sets the auto determine day. Determines the day based on the defined date, if false the current day will be caluclated from defined current day of week",
     },
     SetDayOfWeek: {
       category: "date",
@@ -1119,6 +1146,48 @@ module.exports = {
       displayText : "Day Phase = [b]{0}[/b]",
       description : "Check if the current day phase is the specified phase.",
     },
+    IsDayTime:{
+      category : "dayPhase",
+      forward: "IsDayTime",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      listName : "Is Day Time",
+      displayText : "Is Day Time",
+      description : "Check if the current day phase is day. [6:00am - 8:00pm]",
+    },
+    IsNightTime:{
+      category : "dayPhase",
+      forward: "IsNightTime",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      listName : "Is Night Time",
+      displayText : "Is Night Time",
+      description : "Check if the current day phase is night. [8:00pm - 6:00am]",
+    },
+    OnNoon:{
+      category: "time",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Noon",
+      displayText : "On Noon",
+      description : "Triggered when the time is noon.",
+    },
+    OnMidnight:{
+      category: "time",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Midnight",
+      displayText : "On Midnight",
+      description : "Triggered when the time is midnight.",
+    },
     OnSeasonChanged: {
       category : "season",
       handler: `() => { return true; }`,
@@ -1447,6 +1516,61 @@ module.exports = {
       displayText : "On Yearly Trigger {0}",
       description : "Triggered when the yearly trigger is triggered.",
     },
+    OnSolarTermChanged:{
+      category : "solarTerm",
+      handler: `() => { return true; }`,
+      highlight : false,
+      deprecated : false,
+      isTrigger : true,
+      params: [],
+      listName : "On Solar Term Changed",
+      displayText : "On Solar Term Changed",
+      description : "Triggered when the solar term changes.",
+    },
+    IsSolarTerm: {
+      category: "solarTerm",
+      forward: "IsSolarTerm",
+      highlight: false,
+      deprecated: false,
+      params: [
+        {
+          id: "solarTerm",
+          name: "Solar Term",
+          desc: "The solar term to check.",
+          type: "combo",
+          value: "lichun",
+          items: [
+            { "lichun": "Beginning Of Spring" },
+            { "yushui": "Rain Water" },
+            { "jingzhe": "Awakening Of Insects" },
+            { "chunfen": "Spring Equinox" },
+            { "qingming": "Pure Brightness" },
+            { "guyu": "Grain Rain" },
+            { "lixia": "Beginning Of Summer" },
+            { "xiaoman": "Grain Buds" },
+            { "mangzhong": "Grain In Ear" },
+            { "xiazhi": "Summer Solstice" },
+            { "xiaoshu": "Minor Heat" },
+            { "dashu": "Major Heat" },
+            { "liqiu": "Beginning Of Autumn" },
+            { "chushu": "End Of Heat" },
+            { "baiu": "White Dew" },
+            { "qiufen": "Autumn Equinox" },
+            { "hanlu": "Cold Dew" },
+            { "shuangjiang": "Frosts Descent" },
+            { "lidong": "Beginning Of Winter" },
+            { "xiaoxue": " Minor Snow" },
+            { "daxue": " Major Snow" },
+            { "dongzhi": "Winter Solstice" },
+            { "xiaohan": "Minor Cold" },
+            { "dahan": "Major Cold" },
+          ],
+        },
+      ],
+      listName: "Solar Term Is",
+      displayText: "Solar Term = [b]{0}[/b]",
+      description: "Check if the current solar term is the specified solar term.",
+    }
     /*
     SampleCondition: {
       // The category of the action as it appears in the add condition dialog
@@ -1686,15 +1810,35 @@ module.exports = {
     },
     CurrentDayPhase: {
       category : "dayPhase",
+      forward: "CurrentPhaseOfDayIndex",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current day phase index. (0=dawn, 1=morning, 2=afternoon, 3=day, 4=dusk, 5=night, 6=late-night)",
+    },
+    CurrentDayPhaseName: {
+      category : "dayPhase",
       handler: `function () { return this.currentPhase; }`,
       highlight : false,
       deprecated : false,
       params: [],
       returnType: "string",
       isVariadicParameters: false,
-      description : "The current day phase.",
-    },  
+      description : "The current day phase. (full-name)",
+    },
     CurrentSeason: {
+      category : "season",
+      forward: "CurrentSeasonIndex",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current season index. (0=spring, 1=summer, 2=fall, 3=winter)",
+    },
+    CurrentSeasonName: {
       category : "season",
       handler: `function () { return this.currentSeason; }`,
       highlight : false,
@@ -1702,7 +1846,7 @@ module.exports = {
       params: [],
       returnType: "string",
       isVariadicParameters: false,
-      description : "The current season.",
+      description : "The current season name.",
     },
     TickRate: {
       category : "settings",
@@ -1734,7 +1878,46 @@ module.exports = {
       isVariadicParameters: false,
       description : "The time system as json.",
     },
-
+    CurrentDayInYear: {
+      category : "date",
+      forward: "CurrentDayInYear",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current day in the year. (1-365)",
+    },
+    CurrentSolarTerm: {
+      category : "solarTerm",
+      forward: "CurrentSolarTerm",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current solar terms index (0-23).",
+    },
+    CurrentSolarTermName: {
+      category : "solarTerm",
+      forward: "CurrentSolarTermName",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "string",
+      isVariadicParameters: false,
+      description : "The current solar terms. (full-name)",
+    },
+    CurrentSolarTermLongitude: {
+      category : "solarTerm",
+      forward: "CurrentSolarTermLongitude",
+      highlight : false,
+      deprecated : false,
+      params: [],
+      returnType: "number",
+      isVariadicParameters: false,
+      description : "The current solar terms longitude. in degrees.",
+    },
     /*
     SampleExpression: {
       // The category of the action as it appears in the expression picker
@@ -1792,5 +1975,5 @@ module.exports = {
       description: "This is a sample expression",
     },
     */
-  },
+  }
 };
