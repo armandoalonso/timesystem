@@ -3,30 +3,30 @@ const MONTHS = ['January', 'Febuary', 'March', 'April', 'May', 'June', 'July', '
 const PHASES = ['Dawn', 'Morning', 'Afternoon', 'Day', 'Dusk', 'Night', 'LateNight'];
 const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter'];
 const SOLAR_TERMS = [
-  {'longitude':315,   'minutes':42467,    'term':'BeginningOfSpring'},
-  {'longitude':330,   'minutes':63836,    'term':'RainWater'},
-  {'longitude':345,   'minutes':85337,    'term':'AwakeningOfInsects'},
-  {'longitude':0,     'minutes':107014,   'term':'SpringEquinox'},
-  {'longitude':15,    'minutes':128867,   'term':'PureBrightness'},
-  {'longitude':30,    'minutes':150921,   'term':'GrainRain'},
-  {'longitude':45,    'minutes':173149,   'term':'BeginningOfSummer'},
-  {'longitude':60,    'minutes':195551,   'term':'GrainBuds'},
-  {'longitude':75,    'minutes':218072,   'term':'GrainInEar'},
-  {'longitude':90,    'minutes':240693,   'term':'SummerSolstice'},
-  {'longitude':105,   'minutes':263343,   'term':'MinorHeat'},
-  {'longitude':120,   'minutes':285989,   'term':'Majorheat'},
-  {'longitude':135,   'minutes':308563,   'term':'BeginningOfAutumn'},
-  {'longitude':150,   'minutes':331033,   'term':'EndOfHeat'},
-  {'longitude':165,   'minutes':353350,   'term':'WhiteDew'},
-  {'longitude':180,   'minutes':375494,   'term':'AutumnEquinox'},
-  {'longitude':195,   'minutes':397447,   'term':'ColdDew'},
-  {'longitude':210,   'minutes':419210,   'term':'FrostsDescent'},
-  {'longitude':225,   'minutes':440795,   'term':'BeginningOfWinter'},
-  {'longitude':240,   'minutes':462224,   'term':'MinorSnow'},
-  {'longitude':255,   'minutes':483532,   'term':'MajorSnow'},
-  {'longitude':270,   'minutes':504758,   'term':'WinterSolstice'},
-  {'longitude':285,   'minutes':0,        'term':'MinorCold'},
-  {'longitude':300,   'minutes':21208,    'term':'MajorCold'},
+  {'longitude':315,   'minutes':42467,    'term':'BeginningOfSpring',  index:0},
+  {'longitude':330,   'minutes':63836,    'term':'RainWater',          index:1},
+  {'longitude':345,   'minutes':85337,    'term':'AwakeningOfInsects', index:2},
+  {'longitude':0,     'minutes':107014,   'term':'SpringEquinox',      index:3},
+  {'longitude':15,    'minutes':128867,   'term':'PureBrightness',     index:4},
+  {'longitude':30,    'minutes':150921,   'term':'GrainRain',          index:5},
+  {'longitude':45,    'minutes':173149,   'term':'BeginningOfSummer',  index:6},
+  {'longitude':60,    'minutes':195551,   'term':'GrainBuds',          index:7},
+  {'longitude':75,    'minutes':218072,   'term':'GrainInEar',         index:8},
+  {'longitude':90,    'minutes':240693,   'term':'SummerSolstice',     index:9},
+  {'longitude':105,   'minutes':263343,   'term':'MinorHeat',          index:10},
+  {'longitude':120,   'minutes':285989,   'term':'Majorheat',          index:11},
+  {'longitude':135,   'minutes':308563,   'term':'BeginningOfAutumn',  index:12},
+  {'longitude':150,   'minutes':331033,   'term':'EndOfHeat',          index:13},
+  {'longitude':165,   'minutes':353350,   'term':'WhiteDew',           index:14},
+  {'longitude':180,   'minutes':375494,   'term':'AutumnEquinox',      index:15},
+  {'longitude':195,   'minutes':397447,   'term':'ColdDew',            index:16},
+  {'longitude':210,   'minutes':419210,   'term':'FrostsDescent',      index:17},
+  {'longitude':225,   'minutes':440795,   'term':'BeginningOfWinter',  index:18},
+  {'longitude':240,   'minutes':462224,   'term':'MinorSnow',          index:19},
+  {'longitude':255,   'minutes':483532,   'term':'MajorSnow',          index:20},
+  {'longitude':270,   'minutes':504758,   'term':'WinterSolstice',     index:21},
+  {'longitude':285,   'minutes':0,        'term':'MinorCold',          index:22},
+  {'longitude':300,   'minutes':21208,    'term':'MajorCold',          index:23},
 ];
 
 function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
@@ -485,7 +485,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
     }
 
     CurrentSolarTerm() {
-      return SOLAR_TERMS.indexOf(this.currentSolarTerm);
+      return this.currentSolarTerm.index;
     }
 
     CurrentSolarTermName() {
@@ -568,7 +568,7 @@ function getInstanceJs(parentClass, scriptInterface, addonTriggers, C3) {
       let solarTermsDates = [];
       for(let n = 0; n < 24; n++) {
           let termDate = new Date(baseTimeForYear + SOLAR_TERMS[n].minutes * 60000);
-          solarTermsDates.push({ longitude: SOLAR_TERMS[n].longitude, term: SOLAR_TERMS[n].term, days: this.GetDayOfYear(termDate) }); 
+          solarTermsDates.push({ longitude: SOLAR_TERMS[n].longitude, term: SOLAR_TERMS[n].term, days: this.GetDayOfYear(termDate), index: SOLAR_TERMS[n].index }); 
       }
       return solarTermsDates;
    }
