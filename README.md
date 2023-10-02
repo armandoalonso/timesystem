@@ -5,7 +5,7 @@ A construct plugin to manage in-game time. <br>
 Author: piranha305 <br>
 Website: https://piranha305.itch.io/ <br>
 Addon Url: https://www.construct.net/en/make-games/addons/1101/time-system <br>
-Download Latest Version : [Version: 1.0.0.1](https://github.com/armandoalonso/timesystem/releases/latest) <br>
+Download Latest Version : [Version: 1.1.0.2](https://github.com/armandoalonso/timesystem/releases/latest) <br>
 <sub>Made using [c3ide2-framework](https://github.com/ConstructFund/c3ide2-framework) </sub><br>
 
 ## Table of Contents
@@ -44,6 +44,9 @@ The main files you may want to look at would be instance.js and scriptInterface.
 </br>
 
 ---
+## Notes
+
+---
 ## Properties
 | Property Name | Description | Type |
 | --- | --- | --- |
@@ -56,6 +59,7 @@ The main files you may want to look at would be instance.js and scriptInterface.
 | Current Day | The current day. | integer |
 | Current Month | The current month. | integer |
 | Current Year | The current year. | integer |
+| Auto Determine Day | Determines the day based on the defined date, if false the current day will be caluclated from defined current day of week | check |
 | Current Day Of Week | The current day of the week. | combo |
 | Day Phases | How many phases will trigger in the day. | combo |
 
@@ -71,6 +75,7 @@ The main files you may want to look at would be instance.js and scriptInterface.
 | Set Date | Sets the date. | Day             *(number)* <br>Month             *(number)* <br>Year             *(number)* <br> |
 | Set Time | Sets the time. | Hour             *(number)* <br>Minute             *(number)* <br>Time Phase             *(combo)* <br> |
 | Set Date Time | Sets the date and time. | Day             *(number)* <br>Month             *(number)* <br>Year             *(number)* <br>Hour             *(number)* <br>Minute             *(number)* <br>Time Phase             *(combo)* <br> |
+| Set Auto Determine Day | Sets the auto determine day. Determines the day based on the defined date, if false the current day will be caluclated from defined current day of week | Auto             *(boolean)* <br> |
 | Set Day Of Week | Sets the day of week. (does not manipulate time) | Day             *(combo)* <br> |
 | Add Date Time | Adds the specified amount of time to the current date and time. | Minutes             *(number)* <br>Hours             *(number)* <br>Days             *(number)* <br>Months             *(number)* <br>Years             *(number)* <br> |
 | Set Alarm | Sets the alarm. will trigger OnAlaram condition when time is reached. | Tag             *(string)* <br>Hour             *(number)* <br>Minute             *(number)* <br>Time Phase             *(combo)* <br>Repeat             *(boolean)* <br> |
@@ -105,6 +110,10 @@ The main files you may want to look at would be instance.js and scriptInterface.
 | On Date/Time Changed | Triggered when any date/time value changes. |  |
 | On Day Phase Change | Triggered when the day phase changes. |  |
 | Day Phase Is | Check if the current day phase is the specified phase. | Phase *(combo)* <br> |
+| Is Day Time | Check if the current day phase is day. [6:00am - 8:00pm] |  |
+| Is Night Time | Check if the current day phase is night. [8:00pm - 6:00am] |  |
+| On Noon | Triggered when the time is noon. |  |
+| On Midnight | Triggered when the time is midnight. |  |
 | On Season Changed | Triggered when the season changes. |  |
 | Season Is | Check if the current season is the specified season. | Season *(combo)* <br> |
 | Date/Time Is | Check if the current date/time is the specified date/time. | Day *(number)* <br>Month *(number)* <br>Year *(number)* <br>Hour *(number)* <br>Minute *(number)* <br>Time Phase *(combo)* <br> |
@@ -118,6 +127,8 @@ The main files you may want to look at would be instance.js and scriptInterface.
 | On Date Trigger | Triggered when the date trigger is triggered. | Tag *(string)* <br> |
 | On Monthly Trigger | Triggered when the monthly trigger is triggered. | Tag *(string)* <br> |
 | On Yearly Trigger | Triggered when the yearly trigger is triggered. | Tag *(string)* <br> |
+| On Solar Term Changed | Triggered when the solar term changes. |  |
+| Solar Term Is | Check if the current solar term is the specified solar term. | Solar Term *(combo)* <br> |
 
 
 ---
@@ -138,8 +149,14 @@ The main files you may want to look at would be instance.js and scriptInterface.
 | CurrentMonthShortName | The current month. (short name) | string |  | 
 | CurrentTime24 | The current time in 24 hour format. | string |  | 
 | CurrentTime12 | The current time in 12 hour format. | string |  | 
-| CurrentDayPhase | The current day phase. | string |  | 
-| CurrentSeason | The current season. | string |  | 
+| CurrentDayPhase | The current day phase index. (0=dawn, 1=morning, 2=afternoon, 3=day, 4=dusk, 5=night, 6=late-night) | number |  | 
+| CurrentDayPhaseName | The current day phase. (full-name) | string |  | 
+| CurrentSeason | The current season index. (0=spring, 1=summer, 2=fall, 3=winter) | number |  | 
+| CurrentSeasonName | The current season name. | string |  | 
 | TickRate | The tick rate. | number |  | 
 | TicksPer | The ticks per {x} duration. | number |  | 
 | AsJson | The time system as json. | string |  | 
+| CurrentDayInYear | The current day in the year. (1-365) | number |  | 
+| CurrentSolarTerm | The current solar terms index (0-23). | number |  | 
+| CurrentSolarTermName | The current solar terms. (full-name) | string |  | 
+| CurrentSolarTermLongitude | The current solar terms longitude. in degrees. | number |  | 
